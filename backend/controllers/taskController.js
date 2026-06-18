@@ -5,7 +5,7 @@ import { inngest } from "../inngest/index.js";
 export const createTask = async(req, res) => {
     try {
         const {userId} = await req.auth();
-        const {projectId, title, decription, type, status, priority, assigneeId, due_date} = req.body;
+        const {projectId, title, description, type, status, priority, assigneeId, due_date} = req.body;
         const origin = req.get('origin');
 
         // check admin role
@@ -29,6 +29,7 @@ export const createTask = async(req, res) => {
                 projectId,
                 title,
                 description,
+                type,
                 priority, 
                 assigneeId,
                 status, 
@@ -106,6 +107,11 @@ export const deleteTask = async(req, res) => {
             where: {id: {in: taskIds}}
         })
 
+        const project = await prisma.project.findUnique({
+            where: {id: task[0].projectId},
+            include: {members: {include: {user: true}}}
+        })
+
         // check task
         if(task.length === 0){
             return res.status(404).json({message: "Task not found!"});
@@ -113,11 +119,6 @@ export const deleteTask = async(req, res) => {
         else if(project.team_lead !== userId){
             return res.status(403).json({message: "Only admin authorized!"});
         }
-
-        const project = await prisma.project.findUnique({
-            where: {id: task[0].projectId},
-            include: {members: {include: {user: true}}}
-        })
 
         if(!project){
             return res.status(404).json({message: "Project not found!"});

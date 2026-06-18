@@ -44,7 +44,7 @@ export const getTaskComment = async(req, res) => {
     try {
         const {taskId} = req.params;
 
-        const comments = await prisma.project.findMany({
+        const comments = await prisma.comment.findMany({
             where: {taskId},
             include: {user: true}
         })
